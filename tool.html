@@ -12,14 +12,10 @@
     h2 {
       text-align: center;
     }
-    .form input {
+    .form input, .form select {
       padding: 8px;
       margin: 4px;
       width: 200px;
-    }
-    .form select {
-      padding: 8px;
-      margin: 4px;
     }
     .form button {
       padding: 8px 16px;
@@ -43,28 +39,57 @@
       border-radius: 5px;
       font-size: 14px;
     }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h2>Tool Quản Lý Tài Khoản Ngân Hàng</h2>
-
-  <div class="form">
-    <input type="text" id="stk" placeholder="STK" />
-    <input type="text" id="ctk" placeholder="Chủ TK" />
-    <input type="text" id="bank" placeholder="Ngân hàng" />
-    <select id="status">
-      <option value="true">Rảnh ✅</option>
-      <option value="false">Bận ❌</option>
-    </select>
-    <button onclick="add()">Thêm</button>
+  <div id="loginForm">
+    <h2>Đăng nhập</h2>
+    <div class="form">
+      <input id="username" placeholder="Tài khoản admin" />
+      <input id="password" type="password" placeholder="Mật khẩu" />
+      <button onclick="login()">Đăng nhập</button>
+    </div>
   </div>
 
-  <div id="list"></div>
+  <div id="mainApp" class="hidden">
+    <h2>Tool Quản Lý Tài Khoản Ngân Hàng</h2>
 
-  <h3>Dữ liệu xuất JSON</h3>
-  <pre id="json"></pre>
+    <div class="form">
+      <input type="text" id="stk" placeholder="STK" />
+      <input type="text" id="ctk" placeholder="Chủ TK" />
+      <input type="text" id="bank" placeholder="Ngân hàng" />
+      <select id="status">
+        <option value="true">Rảnh ✅</option>
+        <option value="false">Bận ❌</option>
+      </select>
+      <button onclick="add()">Thêm</button>
+    </div>
+
+    <div id="list"></div>
+
+    <h3>Dữ liệu xuất JSON</h3>
+    <pre id="json"></pre>
+  </div>
 
   <script>
+    const USER = "admin12345";
+    const PASS = "cynx123@";
+
+    function login() {
+      const u = document.getElementById("username").value.trim();
+      const p = document.getElementById("password").value.trim();
+      if (u === USER && p === PASS) {
+        document.getElementById("loginForm").classList.add("hidden");
+        document.getElementById("mainApp").classList.remove("hidden");
+        render();
+      } else {
+        alert("Sai tài khoản hoặc mật khẩu.");
+      }
+    }
+
     let data = [];
 
     function render() {
@@ -118,11 +143,6 @@
         render();
       }
     }
-
-    // Load từ file nếu muốn (dev mode)
-    // fetch('accounts.json').then(r => r.json()).then(json => { data = json; render(); });
-
-    render();
   </script>
 </body>
 </html>
