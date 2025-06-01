@@ -12,14 +12,10 @@
     h2 {
       text-align: center;
     }
-    .form input {
+    .form input, .form select {
       padding: 8px;
       margin: 4px;
       width: 200px;
-    }
-    .form select {
-      padding: 8px;
-      margin: 4px;
     }
     .form button {
       padding: 8px 16px;
@@ -63,6 +59,15 @@
 
   <h3>Dữ liệu xuất JSON</h3>
   <pre id="json"></pre>
+
+  <h3>Gửi dữ liệu lên GitHub</h3>
+  <div class="form">
+    <input id="token" placeholder="GitHub Token" />
+    <input id="username" placeholder="GitHub Username" />
+    <input id="repo" placeholder="Repository name" />
+    <button onclick="pushToGitHub()">💾 Gửi lên GitHub</button>
+  </div>
+  <pre id="status"></pre>
 
   <script>
     let data = [];
@@ -119,8 +124,57 @@
       }
     }
 
-    // Load từ file nếu muốn (dev mode)
-    // fetch('accounts.json').then(r => r.json()).then(json => { data = json; render(); });
+    async function pushToGitHub() {
+      const token = document.getElementById("token").value.trim();
+      const username = document.getElementById("username").value.trim();
+      const repo = document.getElementById("repo").value.trim();
+      const path = "accounts.json";
+
+      if (!token || !username || !repo) {
+        return alert("Điền đầy đủ Token, Username và Repo");
+      }
+
+      const jsonContent = JSON.stringify(data, null, 2);
+      const contentEncoded = btoa(unescape(encodeURIComponent(jsonContent)));
+
+      const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
+
+      let sha;
+      try {
+        const resGet = await fetch(apiUrl, {
+          headers: {
+            Authorization: `token ${token}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        });
+
+        if (resGet.ok) {
+          const json = await resGet.json();
+          sha = json.sha;
+        }
+      } catch (e) {}
+
+      const resPut = await fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+        body: JSON.stringify({
+          message: "Update accounts.json from tool.html",
+          content: contentEncoded,
+          sha,
+        }),
+      });
+
+      const output = document.getElementById("status");
+      if (resPut.ok) {
+        output.textContent = "✅ Đã gửi thành công lên GitHub!";
+      } else {
+        const err = await resPut.json();
+        output.textContent = "❌ Lỗi: " + (err.message || "Không thể ghi file.");
+      }
+    }
 
     render();
   </script>
