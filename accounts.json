@@ -1,0 +1,14 @@
+[
+  {
+    "stk": "42330167",
+    "ctk": "DO THANH TUNG",
+    "bank": "ACB",
+    "status": true
+  },
+  {
+    "stk": "0100116143333",
+    "ctk": "DO XUAN TIEN",
+    "bank": "MBBANK",
+    "status": true
+  }
+]

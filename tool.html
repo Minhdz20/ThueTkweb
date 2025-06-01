@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tool Quản Lý STK</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .form input {
+      padding: 8px;
+      margin: 4px;
+      width: 200px;
+    }
+    .form select {
+      padding: 8px;
+      margin: 4px;
+    }
+    .form button {
+      padding: 8px 16px;
+      margin: 4px;
+    }
+    .card {
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+      margin-bottom: 10px;
+    }
+    .card input {
+      width: 140px;
+    }
+    pre {
+      background: #222;
+      color: #0f0;
+      padding: 10px;
+      overflow: auto;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Tool Quản Lý Tài Khoản Ngân Hàng</h2>
+
+  <div class="form">
+    <input type="text" id="stk" placeholder="STK" />
+    <input type="text" id="ctk" placeholder="Chủ TK" />
+    <input type="text" id="bank" placeholder="Ngân hàng" />
+    <select id="status">
+      <option value="true">Rảnh ✅</option>
+      <option value="false">Bận ❌</option>
+    </select>
+    <button onclick="add()">Thêm</button>
+  </div>
+
+  <div id="list"></div>
+
+  <h3>Dữ liệu xuất JSON</h3>
+  <pre id="json"></pre>
+
+  <script>
+    let data = [];
+
+    function render() {
+      const list = document.getElementById('list');
+      const jsonOut = document.getElementById('json');
+      list.innerHTML = '';
+
+      data.forEach((acc, i) => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <input value="${acc.stk}" onchange="update(${i}, 'stk', this.value)" />
+          <input value="${acc.ctk}" onchange="update(${i}, 'ctk', this.value)" />
+          <input value="${acc.bank}" onchange="update(${i}, 'bank', this.value)" />
+          <select onchange="update(${i}, 'status', this.value)">
+            <option value="true" ${acc.status ? 'selected' : ''}>Rảnh ✅</option>
+            <option value="false" ${!acc.status ? 'selected' : ''}>Bận ❌</option>
+          </select>
+          <button onclick="remove(${i})">Xoá</button>
+        `;
+        list.appendChild(div);
+      });
+
+      jsonOut.textContent = JSON.stringify(data, null, 2);
+    }
+
+    function update(i, key, value) {
+      if (key === 'status') value = value === 'true';
+      data[i][key] = value;
+      render();
+    }
+
+    function add() {
+      const stk = document.getElementById('stk').value.trim();
+      const ctk = document.getElementById('ctk').value.trim();
+      const bank = document.getElementById('bank').value.trim();
+      const status = document.getElementById('status').value === 'true';
+
+      if (!stk || !ctk || !bank) return alert('Vui lòng điền đầy đủ thông tin.');
+
+      data.push({ stk, ctk, bank, status });
+      document.getElementById('stk').value = '';
+      document.getElementById('ctk').value = '';
+      document.getElementById('bank').value = '';
+      render();
+    }
+
+    function remove(i) {
+      if (confirm('Xoá tài khoản này?')) {
+        data.splice(i, 1);
+        render();
+      }
+    }
+
+    // Load từ file nếu muốn (dev mode)
+    // fetch('accounts.json').then(r => r.json()).then(json => { data = json; render(); });
+
+    render();
+  </script>
+</body>
+</html>
