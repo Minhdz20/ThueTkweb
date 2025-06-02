@@ -2,64 +2,243 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Danh sách tài khoản</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
+    :root {
+      --primary-color: #2196F3;
+      --secondary-color: #1976D2;
+      --success-color: #4CAF50;
+      --warning-color: #FFC107;
+      --text-color: #333;
+      --bg-color: #f5f5f5;
+      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body { 
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      background: var(--bg-color);
+      min-height: 100vh;
+      color: var(--text-color);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--primary-color);
+      font-size: 2.2rem;
+      margin-bottom: 2rem;
+      position: relative;
+      padding-bottom: 10px;
+    }
+
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 4px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+
+    #list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 10px;
+    }
+
     .card {
       background: white;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      transform: translateY(0);
+      transition: all 0.3s ease;
+      animation: slideIn 0.5s ease-out;
+      border: 1px solid rgba(0,0,0,0.1);
     }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    }
+
+    .card > div {
+      margin-bottom: 12px;
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .card > div:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .card strong {
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
     .status {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       font-weight: bold;
-      margin-top: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      transition: all 0.3s ease;
     }
+
+    .status.online {
+      background: rgba(76, 175, 80, 0.1);
+      color: var(--success-color);
+    }
+
+    .status.offline {
+      background: rgba(255, 193, 7, 0.1);
+      color: var(--warning-color);
+    }
+
     .status img {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      padding: 2px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .status:hover img {
+      transform: scale(1.1) rotate(10deg);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 1.2rem;
+      color: var(--primary-color);
+    }
+
+    .error {
+      text-align: center;
+      padding: 20px;
+      background: #ffebee;
+      color: #c62828;
+      border-radius: 8px;
+      margin: 20px;
+      animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      h2 {
+        font-size: 1.8rem;
+      }
+      
+      #list {
+        grid-template-columns: 1fr;
+      }
+      
+      .card {
+        padding: 15px;
+      }
     }
   </style>
 </head>
 <body>
-  <h2>Thông tin tài khoản</h2>
-  <div id="list"></div>
+  <div class="container">
+    <h2>Thông tin tài khoản</h2>
+    <div id="list" class="loading">Đang tải dữ liệu...</div>
+  </div>
 
   <script>
     const ON = 'https://cdn.discordapp.com/emojis/1346526712556683295.gif';
     const OFF = 'https://cdn.discordapp.com/emojis/1346526642671190037.gif';
 
     async function loadAccounts() {
+      const list = document.getElementById('list');
+      list.innerHTML = '<div class="loading">Đang tải dữ liệu...</div>';
+
       try {
         const res = await fetch('accounts.json');
         const data = await res.json();
-        const list = document.getElementById('list');
         list.innerHTML = '';
 
-        data.forEach(({ stk, ctk, bank, status }) => {
-          const div = document.createElement('div');
-          div.className = 'card';
-          div.innerHTML = `
-            <div><strong>STK:</strong> ${stk}</div>
-            <div><strong>CTK:</strong> ${ctk}</div>
-            <div><strong>Ngân hàng:</strong> ${bank}</div>
-            <div class="status">
-              <img src="${status ? ON : OFF}" alt="${status ? 'ON' : 'OFF'}">
-              ${status ? 'Chủ tài khoản đang rảnh' : 'Chủ tài khoản đang bận'}
-            </div>
-          `;
-          list.appendChild(div);
+        // Add cards with delay for animation
+        data.forEach(({ stk, ctk, bank, status }, index) => {
+          setTimeout(() => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.style.animationDelay = `${index * 0.1}s`;
+            div.innerHTML = `
+              <div><strong>STK:</strong> ${stk}</div>
+              <div><strong>CTK:</strong> ${ctk}</div>
+              <div><strong>Ngân hàng:</strong> ${bank}</div>
+              <div class="status ${status ? 'online' : 'offline'}">
+                <img src="${status ? ON : OFF}" alt="${status ? 'ON' : 'OFF'}">
+                ${status ? 'Chủ tài khoản đang rảnh' : 'Chủ tài khoản đang bận'}
+              </div>
+            `;
+            list.appendChild(div);
+          }, index * 100);
         });
+
+        if (data.length === 0) {
+          list.innerHTML = '<div class="error">Chưa có tài khoản nào.</div>';
+        }
+
       } catch (err) {
-        document.getElementById('list').innerText = 'Không thể tải dữ liệu.';
+        list.innerHTML = '<div class="error">Không thể tải dữ liệu. Vui lòng thử lại sau.</div>';
       }
     }
 
-    loadAccounts();
+    // Add auto-refresh functionality
+    function startAutoRefresh() {
+      loadAccounts();
+      setInterval(loadAccounts, 30000); // Refresh every 30 seconds
+    }
+
+    // Start loading with fade in effect
+    document.addEventListener('DOMContentLoaded', startAutoRefresh);
   </script>
 </body>
 </html>
